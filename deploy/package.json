@@ -1,0 +1,8 @@
+{
+  "name": "kenketsu-map-deploy",
+  "private": true,
+  "description": "Cloudflare Pages へ配る道具だけ。サイトとテストは外の部品を使わない。版は固定し、package-lock.json で中身も固定する",
+  "devDependencies": {
+    "wrangler": "4.155.0"
+  }
+}

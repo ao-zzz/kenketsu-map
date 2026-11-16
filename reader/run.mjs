@@ -4,7 +4,7 @@
 //
 // 使い方：node reader/run.mjs
 //   APPROVE_BIG_CHANGE=1 をつけると、「不自然な変化」で止まったものを、人が確かめたうえで出す。
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { BLOCKS, pageUrl } from "./blocks.mjs";
@@ -36,12 +36,33 @@ async function fetchPage(url) {
   return text;
 }
 
-async function readPrevious() {
+// 比べる相手は「最後にうまく読めた回」。前の日が止まっていても、比べる相手をなくさない（表の 5）
+export function pickPrevious(recordsNewestFirst) {
+  return recordsNewestFirst.find((r) => r?.status === "ok" && Array.isArray(r.blocks)) ?? null;
+}
+
+async function readJson(file) {
   try {
-    return JSON.parse(await readFile(path.join(DATA, "latest.json"), "utf8"));
+    return JSON.parse(await readFile(file, "utf8"));
   } catch {
     return null;
   }
+}
+
+async function readPrevious() {
+  const latest = await readJson(path.join(DATA, "latest.json"));
+  if (pickPrevious([latest])) return latest;
+  let names = [];
+  try {
+    names = (await readdir(path.join(DATA, "history"))).filter((n) => /^\d{4}-\d{2}-\d{2}\.json$/.test(n)).sort().reverse();
+  } catch {
+    names = [];
+  }
+  for (const name of names) {
+    const r = await readJson(path.join(DATA, "history", name));
+    if (pickPrevious([r])) return r;
+  }
+  return null;
 }
 
 export async function readAll({ fetcher = fetchPage, wait = WAIT_MS } = {}) {

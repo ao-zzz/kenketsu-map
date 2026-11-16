@@ -1,0 +1,94 @@
+# 毎朝1回：① 読む → ② 確かめる → ③ 記録する → ④ 配る
+# - 動くのは、毎朝の時刻と、手で「Run workflow」を押したときだけ。プルリクエストからは動かない（表の 16）
+# - 止まった日も、値を出さない画面を配る。そのうえでこの実行を「失敗」にして、GitHub からメールで知らせる（表の 13）
+# - 使う部品はコミットの番号で固定（版の名前は付け替えられるため）。wrangler は deploy/package-lock.json で中身まで固定
+name: daily
+
+on:
+  schedule:
+    - cron: "0 22 * * *" # 毎朝 7:00（日本時間）
+  workflow_dispatch:
+    inputs:
+      approve_big_change:
+        description: "7ブロックが一度に変わって止まったものを、元のページを自分で見て確かめたうえで出す"
+        type: boolean
+        default: false
+      create_project:
+        description: "はじめての1回だけ：Cloudflare Pages のプロジェクト kenketsu-map を作る"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily
+  cancel-in-progress: false
+
+jobs:
+  daily:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write # data/ の記録をリポジトリに残すためだけ
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+
+      - name: テスト（表の 2〜5）
+        run: npm test
+
+      - name: ① 読む ② 確かめる
+        id: read
+        env:
+          APPROVE_BIG_CHANGE: ${{ inputs.approve_big_change && '1' || '0' }}
+        run: |
+          set +e
+          node reader/run.mjs
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: ③ 記録する
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "記録に変わりなし"
+          else
+            git commit -q -m "data: $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi
+
+      - name: 配るファイルを作る
+        run: npm run build
+
+      - name: 配る道具を入れる（版と中身を固定）
+        run: npm ci --prefix deploy --ignore-scripts --no-audit --no-fund
+
+      - name: はじめての1回だけ：プロジェクトを作り、住所が kenketsu-map.pages.dev か確かめる
+        if: ${{ inputs.create_project }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          out="$(deploy/node_modules/.bin/wrangler pages project create kenketsu-map --production-branch main 2>&1)"
+          echo "$out"
+          if ! echo "$out" | grep -q "https://kenketsu-map.pages.dev"; then
+            echo "::error::住所が kenketsu-map.pages.dev になっていない。配らずに止める（site.config.json の siteUrl と合わない）"
+            exit 1
+          fi
+
+      - name: ④ 配る
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: deploy/node_modules/.bin/wrangler pages deploy dist --project-name kenketsu-map --branch main --commit-dirty=true
+
+      - name: 止まった日は、失敗として知らせる
+        if: ${{ steps.read.outputs.code != '0' }}
+        run: |
+          echo "::error::今日の読み取りは止まりました（値を出さない画面を配りました）。理由は「① 読む ② 確かめる」の記録を見る。7ブロックが一度に変わったときは、元のページを自分で見て、正しければ approve_big_change に印をつけて手で実行する"
+          exit 1

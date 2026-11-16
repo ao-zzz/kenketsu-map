@@ -76,6 +76,8 @@
   }
   const $ = (id) => document.getElementById(id);
 
+  const MAX_AGE_MS = 48 * 3600 * 1000;
+
   // ---- data.json を確かめる（ここでも、決まった形でなければ止める） ----
   function checkData(data) {
     if (!data || data.status !== "ok" || !Array.isArray(data.blocks) || data.blocks.length !== BLOCKS.length) return null;
@@ -274,6 +276,8 @@
       data = null;
     }
     DATA = checkData(data);
+    // 毎朝の読み取りそのものが動かなかった日が続いても、古い値を出し続けない（2日より古ければ止める）
+    if (DATA && !(Date.now() - Date.parse(data.checkedAt) < MAX_AGE_MS)) DATA = null;
     if (!DATA) $("stopped").hidden = false;
     buildStatic(DATA ? formatCheckedAt(data.checkedAt) : null);
     listen();

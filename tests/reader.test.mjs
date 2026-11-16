@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { BLOCKS } from "../reader/blocks.mjs";
 import { parseStatusPage, ReadError } from "../reader/parse.mjs";
 import { cleanDateText } from "../reader/validate.mjs";
-import { decide, readAll } from "../reader/run.mjs";
+import { decide, pickPrevious, readAll } from "../reader/run.mjs";
 import { makePage } from "./helpers/page.mjs";
 
 const stopsWith = (code) => (err) => err instanceof ReadError && err.code === code;
@@ -111,5 +111,12 @@ describe("表の 5：全部のブロックが一度に変わったら、自動�
     const next = all(0);
     next[2].values["400"] = [25, 25, 25, 25];
     assert.equal(decide({ blocks: next }, previous).status, "ok");
+  });
+  test("前の日が止まっていても、最後にうまく読めた回と比べる（比べる相手をなくさない）", () => {
+    const stopped = { status: "stopped", reason: "x" };
+    const picked = pickPrevious([stopped, null, stopped, previous]);
+    assert.equal(picked, previous);
+    assert.equal(decide({ blocks: all(100) }, picked).status, "stopped");
+    assert.equal(pickPrevious([stopped, null]), null);
   });
 });
