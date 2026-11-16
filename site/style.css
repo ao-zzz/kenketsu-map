@@ -1,0 +1,153 @@
+/* 見た目は idea-box/experiments/730-blood-map/6-gentle.html（案6）と同じ。
+   CSP で「ページの中に直接書いた見た目の指定」を禁じるため、すべてこのファイルに書く。 */
+:root{
+  color-scheme:light;
+  /* 地の色は白。赤は「献血」の目印として小さいところ（選んだボタン、予約の入口）だけに使う */
+  --paper:#fffafa;--paper-2:#ffffff;--ink:#3c2829;--ink-soft:#6e5758;--ink-faint:#806b6c;--rule:#e8d6d6;
+  --red:#b63039;
+  /* 地図では強さの差を見せない（日赤の頼み：全国一覧で強調しない）。色は「お願いが出ている」「確保できている」の2つだけ */
+  --ask:#e58f99;--ok:#f9dadd;--none:#e8e2e2;--l3:#cd6373;
+  --mincho:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --gothic:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--gothic);font-weight:500;line-height:1.6;font-feature-settings:"palt";padding-bottom:env(safe-area-inset-bottom)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+[hidden]{display:none !important}
+
+.notice{padding:8px 16px;padding-top:max(8px,env(safe-area-inset-top));background:var(--ink);color:var(--paper);font-size:12.5px;font-weight:700;line-height:1.45;text-align:center}
+.wrap{max-width:1180px;margin:0 auto;padding:14px 16px 40px;display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.left,.right{display:grid;gap:12px;min-width:0}
+
+.kicker{display:block;font-size:12.5px;color:var(--red);font-weight:900;letter-spacing:.04em;margin-bottom:4px}
+h1{font-family:var(--mincho);font-weight:800;line-height:1.4;font-size:clamp(22px,6.4vw,32px)}
+/* 言葉の途中で折り返さないように、まとまりごとに折り返す */
+h1 span{display:inline-block}
+.note{margin-top:6px;font-size:14px;line-height:1.6;color:var(--ink-soft)}
+.patient{margin-bottom:12px;padding:9px 12px;border-radius:10px;background:var(--paper-2);border:1px solid var(--rule);font-size:13px;line-height:1.55;color:var(--ink)}
+.patient b{font-weight:900}
+.stopped{margin-top:10px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--ink);background:var(--paper-2);font-size:14px;line-height:1.6;font-weight:700}
+.can{margin:4px 0 -6px;font-size:14px;color:var(--ink)}
+.empty{font-size:14px;line-height:1.6;color:var(--ink-soft);font-weight:700}
+.msg{margin-top:8px;padding-left:9px;border-left:3px solid var(--l3);font-size:13.5px;line-height:1.55;color:var(--ink-soft)}
+.msg b{display:block;color:var(--ink);font-weight:900}
+
+.controls{display:grid;gap:9px}
+.types{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.type{height:50px;border-radius:13px;border:1.5px solid var(--ink);font-family:var(--mincho);font-size:26px;line-height:1;transition:background .15s,color .15s}
+.type small{font-family:var(--gothic);font-size:12px;font-weight:700;margin-left:1px}
+.type[aria-pressed=true]{background:var(--red);border-color:var(--red);color:#fff}
+.label{display:block;font-size:12.5px;font-weight:700;color:var(--ink-soft);letter-spacing:.04em;margin-bottom:4px}
+.card .label{margin-top:6px}
+.kinds{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;border:1.5px solid var(--ink);border-radius:13px;background:var(--paper-2)}
+.kind{height:42px;border-radius:9px;font-family:var(--mincho);font-size:18px;line-height:1;transition:background .15s,color .15s}
+.kind small{font-family:var(--gothic);font-size:12px;font-weight:700;margin-left:1px}
+.kind[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+
+/* スマホでは地図を画面の端まで広げて、地域の文字を大きくする */
+.map{position:relative;width:calc(100% + 32px);margin:0 -16px}
+.jp{display:block;width:100%;height:auto}
+.jp-block{stroke:var(--paper);stroke-width:3;stroke-linejoin:round;cursor:pointer;transition:fill .28s;fill:var(--none)}
+.jp-block.ask{fill:var(--ask)}
+.jp-block.ok{fill:var(--ok)}
+.jp-prefs path{fill:transparent;stroke:var(--paper);stroke-opacity:.38;stroke-width:1;stroke-linejoin:round;cursor:pointer}
+.jp-prefs path[data-on=true]{fill:var(--paper-2);fill-opacity:.55;stroke:var(--ink);stroke-opacity:1;stroke-width:3}
+.jp-inset{fill:none;stroke:var(--rule);stroke-width:2}
+.jp-block[data-on=true]{stroke:var(--ink);stroke-width:4}
+.jp-lead line{stroke:var(--ink);stroke-opacity:.5;stroke-width:1.6}
+.jp-lead circle{fill:var(--paper-2);stroke:var(--ink);stroke-width:2}
+.chip{position:absolute;transform:translate(-50%,-50%);display:block;padding:3px 8px 4px;border-radius:7px;background:var(--paper-2);box-shadow:0 0 0 1px var(--rule);text-align:left;line-height:1.25;white-space:nowrap}
+.chip b{display:block;font-size:13px;font-weight:900}
+.chip span{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--ink-soft);font-weight:700}
+.chip em{font-style:normal}
+.chip i{width:9px;height:9px;border-radius:2px;flex:none}
+.chip[aria-pressed=true]{box-shadow:0 0 0 2px var(--ink)}
+.inset-name{position:absolute;font-size:11px;color:var(--ink-faint);font-weight:700}
+.stamp{position:absolute;right:10px;bottom:0;font-size:11px;font-weight:700;color:var(--ink-soft);white-space:nowrap}
+
+/* 色の小さな四角（地図の札、色の説明、カード） */
+.sw{background:var(--none)}
+.sw.ask{background:var(--ask)}
+.sw.ok{background:var(--ok)}
+
+.legend{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:4px 14px;font-size:13px;color:var(--ink-soft);font-weight:700}
+.legend li{display:flex;align-items:center;gap:7px}
+.legend i{width:16px;height:12px;border-radius:3px;flex:none}
+.hint{font-size:12.5px;color:var(--ink-faint);font-weight:700}
+
+/* iPhone は 16px 未満の入力欄を押すと画面を拡大するので、選ぶ欄の文字は 16px にする */
+.pick select{display:block;width:100%;height:50px;padding:0 38px 0 14px;border:1.5px solid var(--ink);border-radius:13px;-webkit-appearance:none;appearance:none;background:var(--paper-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%232a2118' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 15px center;color:var(--ink);font-family:var(--gothic);font-size:16px;font-weight:700}
+.card{background:var(--paper-2);border:1px solid var(--rule);border-radius:16px;padding:14px 16px}
+.card h2{font-family:var(--mincho);font-size:23px;font-weight:800;line-height:1.2}
+.card h2 small{font-family:var(--gothic);font-size:12.5px;font-weight:700;color:var(--ink-faint);margin-left:8px}
+.rows{margin-top:6px}
+.row{display:grid;grid-template-columns:58px 14px 1fr;align-items:center;padding:7px 0;border-top:1px solid var(--rule);font-size:15px;font-weight:700}
+.row:first-child{border-top:0}
+.row .t{font-family:var(--mincho);font-size:18px;white-space:nowrap}
+.row i{width:12px;height:12px;border-radius:3px}
+.row:not(.on){color:var(--ink-faint)}
+.row .w{padding-left:8px}
+.shared{margin-top:6px;font-size:13px;color:var(--ink-soft)}
+.src{margin-top:6px;font-size:13px;color:var(--ink-faint)}
+.src a{display:inline-block;margin-top:2px;font-weight:700;color:var(--ink);text-underline-offset:2px}
+
+.cta{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:64px;padding:8px 14px;border-radius:14px;background:var(--red);color:#fff;text-decoration:none;text-align:center;line-height:1.35}
+.cta b{font-size:17px;font-weight:900}
+.cta small{font-size:12px;font-weight:700;opacity:.85}
+.cta2{display:block;text-align:center;font-size:13.5px;font-weight:700;padding:4px 0;text-underline-offset:2px}
+
+.block{border-top:1px solid var(--rule);padding-top:12px}
+.block h2{font-family:var(--mincho);font-size:19px;font-weight:800;line-height:1.3}
+.block ul{list-style:none;margin-top:6px;display:grid;gap:8px;font-size:14px;line-height:1.65;color:var(--ink-soft)}
+.block li b{color:var(--ink);font-weight:900}
+.block li a{text-underline-offset:2px}
+.sources{gap:0 !important}
+.sources li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--rule);line-height:1.35}
+.sources li:first-child{border-top:0}
+.sources span{min-width:0}
+.sources b{display:block}
+.sources small{font-size:12.5px;color:var(--ink-faint)}
+.sources a{flex:none;font-size:13px;font-weight:700;color:var(--ink);padding:6px 0}
+.lead-in{margin-top:4px;font-size:13px;color:var(--ink-soft)}
+.prose{margin-top:6px;font-size:14px;line-height:1.7;color:var(--ink-soft)}
+.block .pref-links,.pref-links{list-style:none;margin-top:8px;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;font-weight:700;line-height:1.6}
+.pref-links a{text-underline-offset:2px}
+
+/* 都道府県のページ */
+.one{max-width:640px}
+.crumb{font-size:13px;font-weight:700}
+.crumb a{color:var(--red);text-underline-offset:2px}
+h1 small{display:block;font-family:var(--gothic);font-size:14px;font-weight:700;color:var(--ink-soft);margin-top:4px;letter-spacing:.02em}
+.kind-cards{display:grid;gap:10px}
+.card h3{font-family:var(--mincho);font-size:19px;font-weight:800;line-height:1.2}
+.notes{list-style:none;margin-top:6px;display:grid;gap:6px;font-size:13.5px;line-height:1.6;color:var(--ink-soft)}
+.notes b{color:var(--ink);font-weight:900;margin-right:6px}
+.to-map{display:block;text-align:center;padding:12px 14px;border:1.5px solid var(--ink);border-radius:14px;font-weight:900;text-decoration:none;background:var(--paper-2)}
+.owner{margin-top:10px;padding:10px 12px;border:1.5px dashed var(--ink-faint);border-radius:10px;font-size:13.5px;font-weight:700}
+.fine{margin-top:10px;font-size:12.5px;color:var(--ink-faint);line-height:1.7}
+details{font-size:13px;color:var(--ink-soft)}
+summary{cursor:pointer;font-weight:700;padding:6px 0;color:var(--ink);font-size:14px}
+table{width:100%;border-collapse:collapse;margin-top:4px;font-size:12px}
+th,td{padding:5px 2px;text-align:left;border-top:1px solid var(--rule);vertical-align:top}
+
+/* 幅の狭いスマホでは、右側のラベルを画面の端にそろえて、はみ出さないようにする */
+@media (max-width:359px){
+  .chip b{font-size:12px}
+  .chip span{font-size:10.5px}
+  .chip[data-block=th],.chip[data-block=ktks]{left:auto !important;right:4px;transform:translateY(-50%)}
+  .stamp .yr{display:none}
+}
+@media (min-width:920px){
+  .wrap{grid-template-columns:minmax(0,430px) minmax(0,1fr);column-gap:48px;align-items:start;padding-top:32px}
+  .left{grid-column:1}
+  .right{grid-column:2;grid-row:1 / span 3;position:sticky;top:20px}
+  .map{width:100%;margin:0}
+  .chip b{font-size:15px}
+  .chip span{font-size:12.5px}
+  .chip{padding:5px 10px 6px}
+  .stamp{font-size:12.5px;right:0}
+  .legend{grid-template-columns:repeat(4,auto);justify-content:start}
+}

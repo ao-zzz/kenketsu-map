@@ -1,0 +1,19 @@
+{
+  "name": "kenketsu-map",
+  "private": true,
+  "type": "module",
+  "description": "献血のお願いマップ（非公式）。各地の赤十字血液センターの「献血状況」を1日1回読み、地図にまとめる",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"tests/*.test.mjs\"",
+    "read": "node reader/run.mjs",
+    "build": "node build/build.mjs",
+    "preview": "node build/build.mjs && node tools/serve.mjs dist 8730",
+    "check:stopped": "node build/build.mjs --test tests/screens/stopped.json && node tools/serve.mjs dist-test 8731",
+    "check:bad-value": "node build/build.mjs --test tests/screens/bad-value.json && node tools/serve.mjs dist-test 8731",
+    "check:script": "node build/build.mjs --test tests/screens/script-in-date.json && node tools/serve.mjs dist-test 8731",
+    "fonts": "node tools/fetch-fonts.mjs"
+  }
+}

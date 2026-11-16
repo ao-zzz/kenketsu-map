@@ -1,0 +1,15 @@
+# Cloudflare Pages がこのファイルを読み、ページを配るときに付ける設定（セキュリティの表の 7）。
+# CSP：このサイトのスクリプト・見た目・文字・データだけを使う。ページの中に直接書いたスクリプトは動かさない。
+#      よそのサイトの枠の中に表示させない（frame-ancestors）。
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000
+
+/data.json
+  Cache-Control: no-cache

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--HEAD_EXTRA--><!-- 検索に載せるか（noindex）と正式な住所（canonical）は、build/build.mjs が site.config.json を見てここに入れる -->
+<meta name="theme-color" content="#3c2829">
+<title>献血のお願いマップ｜血液型ごとの献血状況を全国の地図で（非公式）</title>
+<meta name="description" content="あなたの地域の血液センターは、いま何型の献血をお願いしている？ 各地の赤十字血液センターが出している献血状況（献血へのお願い）を、血液型ごとに全国の地図にまとめた非公式のページです。1日1回更新。">
+<!-- リンクを貼ったときに出るカード。地図の画像は出さず、文字だけにする（全国の強調が外に広がらないように） -->
+<meta property="og:title" content="献血のお願いマップ（非公式）">
+<meta property="og:description" content="あなたの地域の血液センターは、いま何型の献血をお願いしている？">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="notice">非公式のページです。日本赤十字社・各血液センターとは関係がありません。</p>
+<div class="wrap">
+  <div class="left">
+    <div>
+      <p class="patient"><b>輸血を受ける方・ご家族へ</b>この表示は、献血へのご協力をお願いするための血液センターからのメッセージで、在庫の数字ではありません。ご自身の輸血については、主治医にご相談ください。</p>
+      <p class="kicker">献血のお願いマップ（仮の名前）</p>
+      <h1><span>あなたの地域の</span><span>血液センターは、</span><span>いま何型の献血を</span><span>お願いしている？</span></h1>
+      <p class="note">各地の赤十字血液センターが出している「献血へのお願い」を、地図にまとめました。最新の情報は、各血液センターのページでご確認ください。</p>
+      <p class="stopped" id="stopped" hidden>今日は血液センターのページを読み取れなかったため、表示を止めています。最新の情報は、下の「元のページ」でご確認ください。</p>
+      <noscript><p class="stopped">このページは JavaScript を使っています。最新の情報は、各血液センターのページでご確認ください。</p></noscript>
+    </div>
+    <div class="controls">
+      <div class="types" id="types"></div>
+      <div>
+        <span class="label">献血の種類</span>
+        <div class="kinds" id="kinds"></div>
+      </div>
+    </div>
+  </div>
+  <div class="right">
+    <div class="map" id="map"></div>
+    <ul class="legend" id="legend"></ul>
+    <p class="hint">地図の言葉は、このページでの呼び方です。各血液センターの表示は、地図や地域名を押すと下に出ます。</p>
+  </div>
+  <div class="left">
+    <label class="pick"><span class="label">都道府県で探す</span><select id="pref"></select></label>
+    <section class="card" id="card"></section>
+    <p class="label can">あなたにできること</p>
+    <a class="cta" href="https://www.kenketsu.jp/" rel="noopener"><b>献血の予約へ</b><small>ラブラッド（日本赤十字社の献血Web会員サービス）</small></a>
+    <a class="cta2" href="https://www.jrc.or.jp/donation/about/terms/" rel="noopener">献血できる条件を確かめる（日本赤十字社ウェブサイト）</a>
+
+    <section class="block">
+      <h2>この表示について</h2>
+      <ul>
+        <li><b>在庫の数字ではありません。</b>血液センターの説明：「こちらのイラストは、血液センターにおける直近の輸血用血液製剤の在庫状況を示すものではなく、医療機関で必要とされている血液量を安定的に確保するために、皆さまにお伝えしたいメッセージを表示したものとなります。」（<a href="https://www.bs.jrc.or.jp/ktks/tokyo/m0_06_donation.html" rel="noopener">血液センターのウェブサイトで見る</a>）</li>
+        <li><b>地域どうしを比べるものではありません。</b>メッセージは、血液センターのブロックごとに出されています。</li>
+        <li><b>日付は直近でない場合があります。</b>最新の情報は、下の元のページでご確認ください。</li>
+        <li><b>「安心です」の表示でも、</b>血液は長く保存できないため、献血は続けて必要とされています。予約をして、無理のない日にご協力ください。</li>
+      </ul>
+    </section>
+
+    <section class="block">
+      <h2>元のページ</h2>
+      <p class="lead-in" id="readAt">赤十字血液センターのウェブサイトです。</p>
+      <ul class="sources" id="sources"></ul>
+    </section>
+
+    <details>
+      <summary>全部の地域を表で見る</summary>
+      <table>
+        <thead><tr id="thead"></tr></thead>
+        <tbody id="tbody"><!--TABLE_ROWS--></tbody>
+      </table>
+    </details>
+
+    <section class="block">
+      <h2>「血液が足りない」と聞いて調べた方へ</h2>
+      <p class="prose">SNS などで「血液不足」と話題になることがあります。このページの表示は、各地の血液センターが出している献血へのお願いのメッセージで、在庫の数字ではありません。あなたの地域の血液センターが、いま何型の献血をお願いしているかを、地図で確かめられます。輸血を受ける方は、主治医にご相談ください。</p>
+    </section>
+
+    <section class="block">
+      <h2>都道府県から探す</h2>
+      <ul class="pref-links"><!--PREF_LINKS--></ul>
+    </section>
+
+    <section class="block">
+      <h2>公開するときの約束</h2>
+      <ul>
+        <li>日本赤十字社の公式のページではありません。</li>
+        <li>日本赤十字社または血液センターから修正や掲載中止の求めがあれば、すぐに応じます。</li>
+        <li>輸血を必要とする患者さんやご家族に無用な心配をおかけしないよう、全国の数をまとめて強調する表示はしません。「不足」「危機」などの言葉で不安をあおる見出しや、点滅・警告のマークも使いません。</li>
+        <li>赤十字マーク、ロゴ、公式のイラストは使いません。サービス名に「赤十字」の名前は使いません。</li>
+        <li>広告を載せず、料金も取らず、収益を得ません。</li>
+        <li>名前やメールなどの個人情報を集めません。選んだ血液型も保存しません。</li>
+        <li>各ブロックのページを1日1回だけ読み取ります。読み取れなかった日は古い値を出さず、元のページをご案内します。</li>
+        <li><b>改ざんを防ぎます。</b>サイトにログインや書き込みの仕組みを持たせず、読み取った値は4段階の決まった値だけを受け付けます。</li>
+        <li><b>なりすましを防ぎます。</b>運営に使うアカウントは2段階認証で守ります。掲載をやめたあともページを消さず「終了しました」の表示を残し、同じ住所で第三者に偽の呼びかけを出されないようにします。</li>
+        <li><b>異常があれば止めます。</b>公開ページを外部から毎日確かめ、異常があればすぐに表示を止めて、日本赤十字社にお知らせします。</li>
+        <li>このサイトについてのお問い合わせは、日本赤十字社や血液センターではなく、運営者が受けます。</li>
+      </ul>
+      <p class="owner">運営者：（公開するときに、名前と連絡先を記載します）</p>
+      <p class="fine">「非常に困ってます」などの言葉と説明文の著作権は、日本赤十字社にあります。地図：Natural Earth をもとに作成。奄美・沖縄は左上の枠の中に移しています。文字：しっぽり明朝 B1、Zen 角ゴシック New（SIL Open Font License。<a href="fonts/OFL.txt">ライセンス</a>）。</p>
+    </section>
+  </div>
+</div>
+<script src="map.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

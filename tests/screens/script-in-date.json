@@ -1,0 +1,13 @@
+{
+  "status": "ok",
+  "checkedAt": "2026-11-14T22:00:00.000Z",
+  "blocks": [
+    { "id": "hkd", "dateText": "<script>alert(1)</script>", "values": { "400": [0, 0, 0, 0], "200": [0, 0, 0, 0], "plasma": [0, 0, 0, 0] } },
+    { "id": "th", "dateText": "<img src=x onerror=alert(1)>", "values": { "400": [0, 0, 0, 0], "200": [0, 0, 0, 0], "plasma": [0, 0, 0, 0] } },
+    { "id": "ktks", "dateText": null, "values": { "400": [0, 0, 0, 0], "200": [0, 0, 0, 0], "plasma": [0, 0, 0, 0] } },
+    { "id": "tkhr", "dateText": null, "values": { "400": [0, 0, 0, 0], "200": [0, 0, 0, 0], "plasma": [0, 0, 0, 0] } },
+    { "id": "kk", "dateText": null, "values": { "400": [0, 0, 0, 0], "200": [0, 0, 0, 0], "plasma": [0, 0, 0, 0] } },
+    { "id": "csk", "dateText": null, "values": { "400": [0, 0, 0, 0], "200": [0, 0, 0, 0], "plasma": [0, 0, 0, 0] } },
+    { "id": "bc9", "dateText": null, "values": { "400": [0, 0, 0, 0], "200": [0, 0, 0, 0], "plasma": [0, 0, 0, 0] } }
+  ]
+}
