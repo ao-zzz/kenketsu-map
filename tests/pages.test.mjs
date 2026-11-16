@@ -2,9 +2,10 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { BLOCKS } from "../reader/blocks.mjs";
-import { PREFS, esc, prefPage, robotsTxt, sitemapXml, tableRows } from "../build/pages.mjs";
+import { PREFS, checkOwner, esc, ownerHtml, prefPage, robotsTxt, securityTxt, sitemapXml, tableRows } from "../build/pages.mjs";
 
-const config = { siteUrl: "https://example.pages.dev/", indexable: true };
+const FORM = "https://docs.google.com/forms/d/e/1FAIpQLSexample_-123/viewform";
+const config = { siteUrl: "https://example.pages.dev/", indexable: true, operator: "ao-zzz", contactUrl: FORM };
 const data = (dateText = "2026/11/15") => ({
   status: "ok",
   checkedAt: "2026-11-14T22:00:00.000Z",
@@ -43,7 +44,37 @@ describe("都道府県のページ", () => {
   });
 
   test("検索に載せない設定のときは noindex が入る", () => {
-    assert.match(prefPage(tokyo, data(), { siteUrl: "", indexable: false }), /<meta name="robots" content="noindex">/);
+    assert.match(prefPage(tokyo, data(), { ...config, siteUrl: "", indexable: false }), /<meta name="robots" content="noindex">/);
+  });
+
+  test("運営者の名前とお問い合わせのフォームが、どの都道府県のページにも出る", () => {
+    const html = prefPage(tokyo, data(), config);
+    assert.match(html, /運営者：ao-zzz（個人）/);
+    assert.ok(html.includes(`<a href="${FORM}" rel="noopener noreferrer">`));
+  });
+});
+
+describe("運営者と連絡先", () => {
+  test("Google フォーム以外の住所は、作る前に止める（javascript: や よそのサイト）", () => {
+    for (const bad of ["javascript:alert(1)", "http://forms.gle/abc", "https://evil.example/forms/d/e/x/viewform", "https://forms.gle/abc\"onclick=x", "https://docs.google.com/forms/d/e/x/viewform?x=<script>"]) {
+      assert.throws(() => checkOwner({ operator: "ao-zzz", contactUrl: bad }), /contactUrl/, bad);
+    }
+    assert.doesNotThrow(() => checkOwner({ operator: "ao-zzz", contactUrl: FORM }));
+    assert.doesNotThrow(() => checkOwner({ operator: "ao-zzz", contactUrl: "https://forms.gle/AbC123" }));
+  });
+  test("運営者の名前に HTML の文字が入っていたら、作る前に止める", () => {
+    assert.throws(() => checkOwner({ operator: "<b>x</b>" }), /operator/);
+    assert.throws(() => checkOwner({}), /operator/);
+  });
+  test("連絡先が決まっていないときは「準備中」と出し、security.txt は作らない", () => {
+    assert.match(ownerHtml({ operator: "ao-zzz", contactUrl: "" }), /連絡先は準備中です/);
+    assert.equal(securityTxt({ ...config, contactUrl: "" }), null);
+  });
+  test("security.txt に連絡先と1年後の期限が入る", () => {
+    const txt = securityTxt(config, new Date("2026-11-17T00:00:00Z"));
+    assert.match(txt, new RegExp(`^Contact: ${FORM.replace(/[.?/]/g, "\\$&")}$`, "m"));
+    assert.match(txt, /^Expires: 2027-11-17T00:00:00Z$/m);
+    assert.match(txt, /^Canonical: https:\/\/example\.pages\.dev\/\.well-known\/security\.txt$/m);
   });
 });
 

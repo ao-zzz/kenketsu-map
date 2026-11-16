@@ -8,7 +8,7 @@ import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkShape } from "../reader/validate.mjs";
-import { PREFS, headExtra, prefLinks, prefPage, robotsTxt, sitemapXml, tableRows } from "./pages.mjs";
+import { PREFS, checkOwner, headExtra, ownerHtml, prefLinks, prefPage, robotsTxt, securityTxt, sitemapXml, tableRows } from "./pages.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(ROOT, "dist");
@@ -46,6 +46,7 @@ async function main() {
   if (config.siteUrl && !/^https:\/\/[a-z0-9-]+\.pages\.dev\/?$/.test(config.siteUrl)) {
     throw new Error("site.config.json の siteUrl は https://〇〇.pages.dev/ の形にする");
   }
+  checkOwner(config);
 
   await rm(out, { recursive: true, force: true });
   await mkdir(out, { recursive: true });
@@ -56,7 +57,8 @@ async function main() {
   const index = (await readFile(path.join(ROOT, "site", "index.html"), "utf8"))
     .replace("<!--HEAD_EXTRA-->", headExtra(config, "/"))
     .replace("<!--TABLE_ROWS-->", tableRows(data))
-    .replace("<!--PREF_LINKS-->", prefLinks(""));
+    .replace("<!--PREF_LINKS-->", prefLinks(""))
+    .replace("<!--OWNER-->", ownerHtml(config));
   await writeFile(path.join(out, "index.html"), index);
 
   // 都道府県ごとのページ
@@ -68,6 +70,11 @@ async function main() {
   await writeFile(path.join(out, "robots.txt"), robotsTxt(config));
   const sitemap = sitemapXml(config, data.checkedAt);
   if (sitemap) await writeFile(path.join(out, "sitemap.xml"), sitemap);
+  const security = securityTxt(config);
+  if (security) {
+    await mkdir(path.join(out, ".well-known"), { recursive: true });
+    await writeFile(path.join(out, ".well-known", "security.txt"), security);
+  }
 
   console.log(`${path.basename(out)}/ を作った（data.json：${data.status}、都道府県のページ ${PREFS.length}${sitemap ? "、sitemap あり" : "、sitemap なし（siteUrl が未定）"}${testFile ? `、確かめ用：${testFile}` : ""}）`);
 }

@@ -70,6 +70,36 @@ export function headExtra(config, pathName) {
   return parts.join("\n");
 }
 
+// ---- 運営者と連絡先 ----
+// 連絡先は Google フォームのリンクだけを許す（ページに埋め込まず、リンクにするだけ。CSP は変えない）。
+
+const CONTACT_URL = /^https:\/\/(docs\.google\.com\/forms\/d\/e\/[A-Za-z0-9_-]+\/viewform|forms\.gle\/[A-Za-z0-9]+)$/;
+
+export function checkOwner(config) {
+  if (typeof config.operator !== "string" || !/^[A-Za-z0-9_-]{1,40}$/.test(config.operator)) {
+    throw new Error("site.config.json の operator は英数字と - _ だけ（40文字まで）にする");
+  }
+  if (config.contactUrl && !CONTACT_URL.test(config.contactUrl)) {
+    throw new Error("site.config.json の contactUrl は Google フォームの住所（https://docs.google.com/forms/d/e/…/viewform か https://forms.gle/…）にする");
+  }
+}
+
+export function ownerHtml(config) {
+  const contact = config.contactUrl
+    ? `ご連絡（まちがいのお知らせ、直してほしい・消してほしいというお願い）は、<a href="${esc(config.contactUrl)}" rel="noopener noreferrer">お問い合わせのフォーム（Google フォーム）</a>からお送りください。`
+    : "連絡先は準備中です。";
+  return `運営者：${esc(config.operator)}（個人）。${contact}`;
+}
+
+// 守りの問題を見つけた人への連絡先（RFC 9116）。連絡先が決まったときだけ出す。
+export function securityTxt(config, now = new Date()) {
+  if (!config.contactUrl) return null;
+  const expires = new Date(now.getTime() + 365 * 24 * 3600 * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
+  const lines = [`Contact: ${config.contactUrl}`, `Expires: ${expires}`, "Preferred-Languages: ja"];
+  if (config.siteUrl) lines.push(`Canonical: ${config.siteUrl.replace(/\/$/, "")}/.well-known/security.txt`);
+  return lines.join("\n") + "\n";
+}
+
 // ---- 都道府県のページ ----
 
 export function prefPage(pref, data, config) {
@@ -147,7 +177,8 @@ ${headExtra(config, `/${pref.slug}/`)}
     <ul class="pref-links">${prefLinks("../")}</ul>
   </section>
 
-  <p class="fine">非公式のページです。日本赤十字社の公式のページではありません。「非常に困ってます」などの言葉と説明文の著作権は、日本赤十字社にあります。文字：しっぽり明朝 B1、Zen 角ゴシック New（SIL Open Font License。<a href="../fonts/OFL.txt">ライセンス</a>）。運営者：（公開するときに、名前と連絡先を記載します）</p>
+  <p class="fine">非公式のページです。日本赤十字社の公式のページではありません。「非常に困ってます」などの言葉と説明文の著作権は、日本赤十字社にあります。文字：しっぽり明朝 B1、Zen 角ゴシック New（SIL Open Font License。<a href="../fonts/OFL.txt">ライセンス</a>）。</p>
+  <p class="owner">${ownerHtml(config)}</p>
 </div>
 </body>
 </html>
