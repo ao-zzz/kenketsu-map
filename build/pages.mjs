@@ -23,13 +23,6 @@ export const PREFS = [
   slug,
 }));
 
-// 血液センターの言葉の意味（日本赤十字社の文）
-const NOTES = {
-  0: "至急ご協力をお願いします。お一人でも多くの方からの献血を必要としています。",
-  25: "患者さんに届けるために必要な血液量の確保が困難な状況です。ぜひ近日中のご協力をお願いします。",
-  50: "患者さんに届けるために必要な血液量の確保が今後心配な状況です。ご協力をお願いします。",
-  100: "患者さんに届けるために必要な血液量の確保ができています。",
-};
 const KIND_TITLE = { 400: "400mL 献血", 200: "200mL 献血", plasma: "成分献血" };
 const labelOf = (v) => LEVELS.find((l) => l.v === v).label;
 const askWord = (v) => (v === 100 ? "確保できている" : "献血のお願いあり");
@@ -117,25 +110,16 @@ export function prefPage(pref, data, config) {
 
   let body;
   if (blk) {
-    const seen = new Set();
     const cards = KINDS.map((k) => {
       const rows = TYPES.map((t, i) => {
         const v = blk.values[k.id][i];
-        seen.add(v);
         return `<div class="row on"><span class="t">${esc(t)}型</span><i class="sw ${askCls(v)}"></i><span class="w">${esc(labelOf(v))}</span></div>`;
       }).join("");
       return `<section class="card"><h3>${esc(KIND_TITLE[k.id])}</h3><div class="rows">${rows}</div></section>`;
     }).join("");
-    const notes = LEVELS.filter((l) => seen.has(l.v))
-      .map((l) => `<li><b>${esc(l.label)}</b>${esc(NOTES[l.v])}</li>`)
-      .join("");
     body = `
     <p class="label">献血する方へのお願いの言葉です（血液センターの表示のまま）</p>
     <div class="kind-cards">${cards}</div>
-    <section class="block">
-      <h2>それぞれの言葉の意味（血液センターの説明）</h2>
-      <ul class="notes">${notes}</ul>
-    </section>
     <p class="src">ブロックの日付：${esc(blk.dateText || "ページに日付の記載なし")}${readAt ? `<br>このページの値は、${esc(readAt)}に読み取りました。` : ""}<br><a href="${esc(url)}" rel="noopener">元のページを見る（${esc(pref.full)}の血液センターのウェブサイト）</a></p>`;
   } else {
     body = `
@@ -182,7 +166,7 @@ ${ICON_LINKS}
     <ul class="pref-links">${prefLinks("../")}</ul>
   </section>
 
-  <p class="fine">非公式のページです。日本赤十字社の公式のページではありません。「非常に困ってます」などの言葉と説明文の著作権は、日本赤十字社にあります。文字：しっぽり明朝 B1、Zen 角ゴシック New（SIL Open Font License。<a href="../fonts/OFL.txt">ライセンス</a>）。</p>
+  <p class="fine">非公式のページです。日本赤十字社の公式のページではありません。「非常に困ってます」などの表示の言葉は、日本赤十字社の各血液センターのページのものです。文字：しっぽり明朝 B1、Zen 角ゴシック New（SIL Open Font License。<a href="../fonts/OFL.txt">ライセンス</a>）。</p>
   <p class="owner">${ownerHtml(config)}</p>
 </div>
 </body>

@@ -13,12 +13,12 @@
     { id: "200", label: "200", unit: "mL" },
     { id: "plasma", label: "成分献血", unit: "" },
   ];
-  // 血液センターの表示の言葉とメッセージ（日本赤十字社の文。カードの中だけに出す）
+  // 血液センターの表示の短い言葉（カードの中だけに出す）。説明の文は写さず、元のページへ案内する
   const LEVELS = {
-    0: { label: "非常に困ってます", note: "至急ご協力をお願いします。お一人でも多くの方からの献血を必要としています。" },
-    25: { label: "困っています", note: "患者さんに届けるために必要な血液量の確保が困難な状況です。ぜひ近日中のご協力をお願いします。" },
-    50: { label: "心配です", note: "患者さんに届けるために必要な血液量の確保が今後心配な状況です。ご協力をお願いします。" },
-    100: { label: "安心です", note: "患者さんに届けるために必要な血液量の確保ができています。" },
+    0: { label: "非常に困ってます" },
+    25: { label: "困っています" },
+    50: { label: "心配です" },
+    100: { label: "安心です" },
   };
   // 地図・表では強さの差を見せず、2つにまとめる（このページでの呼び方）
   const ASK = { on: { cls: "ask", word: "献血のお願いあり" }, off: { cls: "ok", word: "確保できている" } };
@@ -219,12 +219,10 @@
         return el("div", { class: t === state.type ? "row on" : "row" }, el("span", { class: "t" }, `${t}型`), el("i", { class: `sw ${askOf(v).cls}` }), el("span", { class: "w" }, LEVELS[v].label));
       }),
     );
-    const sel = LEVELS[levelOf(block.id, state.kind, state.type)];
     card.replaceChildren(
       title,
       el("p", { class: "label" }, "献血する方へのお願いの言葉です（血液センターの表示のまま）"),
       rows,
-      el("p", { class: "msg" }, el("b", {}, `${state.type}型へのメッセージ`), sel.note),
       selected ? el("p", { class: "shared" }, `この表示は${block.name}ブロックで共通です。`) : null,
       el("p", { class: "src" }, `ブロックの日付：${DATA[block.id].dateText || "ページに日付の記載なし"}`, el("br"), link),
     );
