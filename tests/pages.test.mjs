@@ -100,6 +100,12 @@ describe("トップページの表と、検索の機械への案内", () => {
     assert.equal(/<script/i.test(html), false);
     assert.equal(/仮の名前/.test(html + prefPage(tokyo, data(), config)), false);
   });
+  test("都道府県のページと見つからない住所のページにアイコンがある", () => {
+    for (const html of [prefPage(tokyo, data(), config), notFoundPage(config)]) {
+      assert.match(html, /<link rel="icon" href="\/favicon\.svg"/);
+      assert.match(html, /<link rel="apple-touch-icon" href="\/apple-touch-icon\.png">/);
+    }
+  });
   test("esc は HTML の特別な文字を全部かえる", () => {
     assert.equal(esc(`<a href="x" onclick='y'>&</a>`), "&lt;a href=&quot;x&quot; onclick=&#39;y&#39;&gt;&amp;&lt;/a&gt;");
   });

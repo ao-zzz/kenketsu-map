@@ -36,6 +36,11 @@ const askWord = (v) => (v === 100 ? "確保できている" : "献血のお願�
 const askCls = (v) => (v === 100 ? "ok" : "ask");
 const centerUrl = (blockId, slug) => `https://www.bs.jrc.or.jp/${blockId}/${slug}/`;
 
+// アイコン（どの深さのページでも同じなので、住所は / から書く）
+export const ICON_LINKS = `<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">`;
+
 export function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
@@ -150,7 +155,7 @@ ${headExtra(config, `/${pref.slug}/`)}
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}">
 <meta name="twitter:card" content="summary">
-<link rel="icon" href="data:,">
+${ICON_LINKS}
 <link rel="stylesheet" href="../fonts/fonts.css">
 <link rel="stylesheet" href="../style.css">
 </head>
@@ -198,7 +203,7 @@ export function notFoundPage(config) {
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#3c2829">
 <title>ページが見つかりません｜献血のお願いマップ（非公式）</title>
-<link rel="icon" href="data:,">
+${ICON_LINKS}
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/style.css">
 </head>
