@@ -8,7 +8,7 @@ import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkShape } from "../reader/validate.mjs";
-import { PREFS, checkOwner, headExtra, ownerHtml, prefLinks, prefPage, robotsTxt, securityTxt, sitemapXml, tableRows } from "./pages.mjs";
+import { PREFS, checkOwner, headExtra, notFoundPage, ownerHtml, prefLinks, prefPage, robotsTxt, securityTxt, sitemapXml, tableRows } from "./pages.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(ROOT, "dist");
@@ -67,6 +67,7 @@ async function main() {
     await writeFile(path.join(out, pref.slug, "index.html"), prefPage(pref, data, config));
   }
 
+  await writeFile(path.join(out, "404.html"), notFoundPage(config));
   await writeFile(path.join(out, "robots.txt"), robotsTxt(config));
   const sitemap = sitemapXml(config, data.checkedAt);
   if (sitemap) await writeFile(path.join(out, "sitemap.xml"), sitemap);

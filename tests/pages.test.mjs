@@ -2,7 +2,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { BLOCKS } from "../reader/blocks.mjs";
-import { PREFS, checkOwner, esc, ownerHtml, prefPage, robotsTxt, securityTxt, sitemapXml, tableRows } from "../build/pages.mjs";
+import { PREFS, checkOwner, esc, notFoundPage, ownerHtml, prefPage, robotsTxt, securityTxt, sitemapXml, tableRows } from "../build/pages.mjs";
 
 const FORM = "https://docs.google.com/forms/d/e/1FAIpQLSexample_-123/viewform";
 const config = { siteUrl: "https://example.pages.dev/", indexable: true, operator: "ao-zzz", contactUrl: FORM };
@@ -93,6 +93,12 @@ describe("トップページの表と、検索の機械への案内", () => {
   test("robots.txt は、検索に載せるかの設定に従う", () => {
     assert.match(robotsTxt(config), /Allow: \//);
     assert.match(robotsTxt({ siteUrl: "", indexable: false }), /Disallow: \//);
+  });
+  test("見つからない住所のページは、検索に載せず、スクリプトもない", () => {
+    const html = notFoundPage(config);
+    assert.match(html, /<meta name="robots" content="noindex">/);
+    assert.equal(/<script/i.test(html), false);
+    assert.equal(/仮の名前/.test(html + prefPage(tokyo, data(), config)), false);
   });
   test("esc は HTML の特別な文字を全部かえる", () => {
     assert.equal(esc(`<a href="x" onclick='y'>&</a>`), "&lt;a href=&quot;x&quot; onclick=&#39;y&#39;&gt;&amp;&lt;/a&gt;");

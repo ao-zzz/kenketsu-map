@@ -157,7 +157,7 @@ ${headExtra(config, `/${pref.slug}/`)}
 <body>
 <p class="notice">非公式のページです。日本赤十字社・各血液センターとは関係がありません。</p>
 <div class="wrap one">
-  <p class="crumb"><a href="../">献血のお願いマップ（仮の名前）</a></p>
+  <p class="crumb"><a href="../">献血のお願いマップ</a></p>
   <p class="patient"><b>輸血を受ける方・ご家族へ</b>この表示は、献血へのご協力をお願いするための血液センターからのメッセージで、在庫の数字ではありません。ご自身の輸血については、主治医にご相談ください。</p>
   <h1>${esc(pref.full)}の献血状況<small>血液型ごと・${esc(block.name)}ブロックで共通の表示</small></h1>
   <p class="note">${esc(pref.full)}の血液センターが出している「献血へのお願い」です。この表示は${esc(block.name)}ブロックで共通です。最新の情報は、元のページでご確認ください。</p>
@@ -178,6 +178,41 @@ ${headExtra(config, `/${pref.slug}/`)}
   </section>
 
   <p class="fine">非公式のページです。日本赤十字社の公式のページではありません。「非常に困ってます」などの言葉と説明文の著作権は、日本赤十字社にあります。文字：しっぽり明朝 B1、Zen 角ゴシック New（SIL Open Font License。<a href="../fonts/OFL.txt">ライセンス</a>）。</p>
+  <p class="owner">${ownerHtml(config)}</p>
+</div>
+</body>
+</html>
+`;
+}
+
+// ---- 見つからない住所 ----
+// Pages は 404.html がないと、どんな住所にもトップを返す（検索の機械に同じページがたくさんあるように見える）。
+// これを置くと、ない住所は 404 で返る。どの深さの住所でも出るので、住所は / から書く
+
+export function notFoundPage(config) {
+  return `<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#3c2829">
+<title>ページが見つかりません｜献血のお願いマップ（非公式）</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<p class="notice">非公式のページです。日本赤十字社・各血液センターとは関係がありません。</p>
+<div class="wrap one">
+  <p class="crumb"><a href="/">献血のお願いマップ</a></p>
+  <h1>ページが見つかりません</h1>
+  <p class="note">住所がまちがっているか、ページがなくなった可能性があります。</p>
+  <a class="to-map" href="/">全国の地図で見る</a>
+  <section class="block">
+    <h2>都道府県から探す</h2>
+    <ul class="pref-links">${prefLinks("/")}</ul>
+  </section>
   <p class="owner">${ownerHtml(config)}</p>
 </div>
 </body>
