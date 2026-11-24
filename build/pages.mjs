@@ -64,7 +64,20 @@ export function prefLinks(prefix = "") {
 export function headExtra(config, pathName) {
   const parts = [];
   if (!config.indexable) parts.push('<meta name="robots" content="noindex">');
-  if (config.siteUrl) parts.push(`<link rel="canonical" href="${esc(config.siteUrl.replace(/\/$/, "") + pathName)}">`);
+  if (config.siteUrl) {
+    const base = config.siteUrl.replace(/\/$/, "");
+    parts.push(`<link rel="canonical" href="${esc(base + pathName)}">`);
+    // リンクカードの画像。地図や日付は入れない、文字だけの固定の画像（全国の強調が外に広がらないように）
+    parts.push(
+      `<meta property="og:image" content="${esc(base)}/ogp.png">`,
+      '<meta property="og:image:width" content="1200">',
+      '<meta property="og:image:height" content="630">',
+      '<meta property="og:image:alt" content="献血のお願いマップ（非公式）">',
+      '<meta name="twitter:card" content="summary_large_image">',
+    );
+  } else {
+    parts.push('<meta name="twitter:card" content="summary">');
+  }
   return parts.join("\n");
 }
 
@@ -138,7 +151,6 @@ ${headExtra(config, `/${pref.slug}/`)}
 <meta name="description" content="${esc(desc)}">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}">
-<meta name="twitter:card" content="summary">
 ${ICON_LINKS}
 <link rel="stylesheet" href="../fonts/fonts.css">
 <link rel="stylesheet" href="../style.css">

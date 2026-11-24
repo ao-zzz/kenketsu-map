@@ -47,6 +47,15 @@ describe("都道府県のページ", () => {
     assert.match(prefPage(tokyo, data(), { ...config, siteUrl: "", indexable: false }), /<meta name="robots" content="noindex">/);
   });
 
+  test("リンクカードの画像（1200×630の固定の画像）と大きいカードの指定が入る。二重にならない", () => {
+    const html = prefPage(tokyo, data(), config);
+    assert.match(html, /<meta property="og:image" content="https:\/\/example\.pages\.dev\/ogp\.png">/);
+    assert.match(html, /<meta property="og:image:width" content="1200">/);
+    assert.match(html, /<meta property="og:image:height" content="630">/);
+    assert.equal(html.match(/name="twitter:card"/g).length, 1);
+    assert.match(html, /<meta name="twitter:card" content="summary_large_image">/);
+  });
+
   test("運営者の名前とお問い合わせのフォームが、どの都道府県のページにも出る", () => {
     const html = prefPage(tokyo, data(), config);
     assert.match(html, /運営者：ao-zzz（個人）/);
